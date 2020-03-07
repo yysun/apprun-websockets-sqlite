@@ -1,17 +1,31 @@
 // @ts-check
 const app = require('apprun').app;
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path')
 const fs = require('fs')
-const file = path.join(__dirname, '../db/todo.db');
+const dbFile = "./sqlite.db";
+const exists = fs.existsSync(dbFile);
 
 function using(fn) {
-  const db = new sqlite3.Database(file);
+  const db = new sqlite3.Database(dbFile);
   fn(db);
   db.close();
 }
 
-console.log('Using database: ', file);
+console.log('Using database: ', dbFile);
+
+const db = new sqlite3.Database(dbFile);
+db.serialize(() => {
+  if (!exists) {
+    db.run(`CREATE TABLE Todo (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                title       TEXT    NOT NULL,
+                done        NUMERIC NOT NULL DEFAULT 0,
+                CONSTRAINT Todo_ck_done CHECK (done IN (0, 1))
+              );`);
+    console.log("New table created!");
+  }
+});
+
 
 app.on('@get-all-todo', (json, ws) => {
   using(db => {

@@ -33,6 +33,8 @@ wss.on('connection', function(ws) {
   console.log('started ws connection');
 });
 
-server.listen(8080, function() {
+const port = 8080; //process.env.PORT;
+const listener = server.listen(port, () => {
   console.log('Listening on http://localhost:8080');
+  // console.log(`Your app is listening on port ${listener.address().port}`);
 });

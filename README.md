@@ -12,6 +12,10 @@ This project introduces a new architecture using the [WebSocket API](https://dev
 
 * The back-end app is also AppRun event driven without REST API endpoints.
 
+## DEMO
+
+https://yysun-apprun-websockets-sqlite.glitch.me
+
 ### Run the Project
 
 * Use _npm start_ to start the dev server
