@@ -1,7 +1,9 @@
 // @ts-check
 const app = require('apprun').app;
 const sqlite3 = require('sqlite3').verbose();
-const file = "db/todo.db";
+const path = require('path')
+const fs = require('fs')
+const file = path.join(__dirname, '../db/todo.db');
 
 function using(fn) {
   const db = new sqlite3.Database(file);
@@ -9,11 +11,13 @@ function using(fn) {
   db.close();
 }
 
+console.log('Using database: ', file);
+
 app.on('@get-all-todo', (json, ws) => {
   using(db => {
     const sql = 'select * from todo';
     db.all(sql, function (err, rows) {
-      json.state = rows;
+      json.state = rows || [];
       console.log('  >', json);
       ws.send(JSON.stringify(json));
     });
@@ -31,34 +35,43 @@ app.on('@get-todo', (json, ws) => {
   });
 });
 
-app.on('@create-todo', (json) => {
+app.on('@create-todo', (json, ws) => {
   using(db => {
     const sql = 'insert into todo (title, done) values (?,?)';
-    db.run(sql, json.state.title, json.state.done);
-    console.log('  >', 'created');
+    db.run(sql, json.state.title, json.state.done, function () {
+      json.state.id = this.lastID;
+      console.log('  >', 'created', json);
+      ws.send(JSON.stringify(json));
+    });
   });
 });
 
-app.on('@update-todo', (json) => {
+app.on('@update-todo', (json, ws) => {
   using(db => {
     const sql = 'update todo set title=?, done=? where id=?';
-    db.run(sql, json.state.title, json.state.done, json.state.id);
-    console.log('  >', 'updated');
+    db.run(sql, json.state.title, json.state.done, json.state.id, function () {
+      console.log('  >', 'updated', json);
+      ws.send(JSON.stringify(json));
+    });
   });
 });
 
-app.on('@delete-todo', (json) => {
+app.on('@delete-todo', (json, ws) => {
   using(db => {
     const sql = 'delete from todo where id=?';
-    db.run(sql, json.state.id);
-    console.log('  >', 'deleted');
+    db.run(sql, json.state.id, function () {
+      console.log('  >', 'deleted', json);
+      ws.send(JSON.stringify(json));
+    });
   });
 });
 
-app.on('@delete-all-todo', () => {
+app.on('@delete-all-todo', (json, ws) => {
   using(db => {
     const sql = 'delete from todo';
-    db.run(sql);
-    console.log('  >', 'deleted all');
+    db.run(sql, function () {
+      console.log('  >', 'deleted all', json);
+      ws.send(JSON.stringify(json));
+    });
   });
 });

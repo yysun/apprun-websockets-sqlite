@@ -7,40 +7,33 @@ const state = {
   todos: []
 }
 
-const keyup = (state, e) => {
+const keyup = e => {
   const input = e.target;
   if (e.keyCode === ENTER && input.value) {
-    state = add(state, input.value);
+    add();
     input.value = '';
-    return state;
   }
 };
 
-const add = (state, title) => ({
-  ...state,
-  todos: [...state.todos, { title, done: false }]
-});
+const add = () => {
+  app.run('//ws:', '@create-todo', {
+    title: (document.getElementById('new_todo') as HTMLInputElement).value,
+    done: 0
+  })
+};
 
-const toggle = (state, idx) => ({
-  ...state,
-  todos: [
-    ...state.todos.slice(0, idx),
-    { ...state.todos[idx], done: !state.todos[idx].done },
-    ...state.todos.slice(idx + 1)
-  ]
-});
+const toggle = (_, todo) => { app.run('//ws:', '@update-todo', { ...todo, done: !todo.done }) };
 
-const clear = (state) => ({ ...state, todos: [] });
+const remove = (_, todo) => { app.run('//ws:', '@delete-todo', todo) };
+
+const clear = () => { app.run('//ws:', '@delete-all-todo') };
 
 const search = (state, filter) => ({ ...state, filter });
 
-const Todo = ({todo, idx}) => <li $onclick={[toggle, idx]}
-  style = {{
-    color: todo.done ? 'green': 'red',
-    textDecoration: todo.done ? "line-through" : "none",
-    cursor: 'pointer'
-  }}>
-  {todo.title}
+const Todo = ({todo}) => <li>
+  <input type="checkbox" checked={todo.done} $onclick={[toggle, todo]}></input>
+  <span style={{color: todo.done ? 'green' : 'red'}}>
+    {todo.title} <a href='#' $onclick={[remove, todo]}>&#9249;</a></span>
 </li>;
 
 const view = (state) => {
@@ -62,15 +55,50 @@ const view = (state) => {
           .filter(todo => state.filter === 0 ||
             (state.filter === 1 && !todo.done) ||
             (state.filter === 2 && todo.done) )
-          .map((todo, idx) => <Todo todo={todo} idx={idx} />)
+          .map((todo) => <Todo todo={todo} />)
       }
     </ul>
     <div>
-      <input placeholder='add todo' $onkeyup={keyup} />
-      <button $onclick={add}>Add</button>
-      <button $onclick={clear}>Clear</button>
+      <input placeholder='add todo' onkeyup={keyup} id="new_todo"/>
+      <button $onclick={[add]}>Add</button>
+      <button $onclick={[clear]}>Clear</button>
     </div>
   </div>
 }
 
-export default new Component(state, view);
+const update = {
+  '@get-all-todo': (state, todos) => ({ ...state, todos }),
+
+  '@create-todo': (state, todo) => ({
+    ...state, todos: [...state.todos, todo], filter:0
+  }),
+
+  '@update-todo': (state, todo) => {
+    const idx = state.todos.findIndex(i => i.id === todo.id);
+    if (idx < 0) app.run('//ws:', '@get-all-todo');
+    else return ({
+      ...state,
+      todos: [
+        ...state.todos.slice(0, idx),
+        todo,
+        ...state.todos.slice(idx + 1)
+      ]
+    });
+  },
+
+  '@delete-todo': (state, todo) => {
+    const idx = state.todos.findIndex(i => i.id === todo.id);
+    if (idx < 0) app.run('//ws:', '@get-all-todo');
+    else return ({
+      ...state,
+      todos: [
+        ...state.todos.slice(0, idx),
+        ...state.todos.slice(idx + 1)
+      ]
+    });
+  },
+
+  '@delete-all-todo': state => ({ ...state, todos: [] })
+}
+
+export default new Component(state, view, update);

@@ -8,9 +8,10 @@ ws.onmessage = function (msg) {
   app.run(event, state);
 }
 
-app.on('//ws:', (event, state, ...args) => {
-  const msg = { event, state, args };
+app.on('//ws:', (event, state) => {
+  const msg = { event, state };
   ws.send(JSON.stringify(msg));
 });
 
-todo.start(document.body);
+todo.mount(document.body);
+ws.onopen = () => app.run('//ws:', '@get-all-todo');
