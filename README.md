@@ -14,6 +14,8 @@ This project introduces a new architecture using the [WebSocket API](https://dev
 
 ## DEMO
 
+[![Run on Repl.it](https://repl.it/badge/github/yysun/apprun-websockets-sqlite)](https://repl.it/github/yysun/apprun-websockets-sqlite)
+
 https://yysun-apprun-websockets-sqlite.glitch.me
 
 ### Run the Project
