@@ -1,6 +1,6 @@
 ## AppRun - WebSockets - SQLite
 
-Most of the database-driven applications have a REST API based architecture. It is tedious and error prone to build and then consume the REST API.
+Most of the database-driven applications have a REST API based architecture. It is tedious and error-prone to build and then consume the REST API.
 
 ![](architecture-old.png)
 
@@ -8,9 +8,9 @@ This project introduces a new architecture using the [WebSocket API](https://dev
 
 ![](architecture-new.png)
 
-* The front-end app is AppRun event-driven without REST API calls. In fact it has not even network calls.
+* The front-end app is AppRun event-driven without REST API calls. In fact, it has not even network calls.
 
-* The back-end app is also AppRun event driven without REST API endpoints.
+* The back-end app is also AppRun event-driven without REST API endpoints.
 
 ## DEMO
 

@@ -2,7 +2,7 @@
 const app = require('apprun').app;
 const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs')
-const dbFile = "./sqlite.db";
+const dbFile = "db/todo.db";
 const exists = fs.existsSync(dbFile);
 
 function using(fn) {
@@ -20,6 +20,7 @@ db.serialize(() => {
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 title       TEXT    NOT NULL,
                 done        NUMERIC NOT NULL DEFAULT 0,
+                ip          VARCHAR(15) NOT NULL,
                 CONSTRAINT Todo_ck_done CHECK (done IN (0, 1))
               );`);
     console.log("New table created!");
@@ -51,9 +52,10 @@ app.on('@get-todo', (json, ws) => {
 
 app.on('@create-todo', (json, ws) => {
   using(db => {
-    const sql = 'insert into todo (title, done) values (?,?)';
-    db.run(sql, json.state.title, json.state.done, function () {
+    const sql = 'insert into todo (title, done, ip) values (?,?,?)';
+    db.run(sql, json.state.title, json.state.done, json.ip, function () {
       json.state.id = this.lastID;
+      json.state.ip = json.ip;
       console.log('  >', 'created', json);
       ws.send(JSON.stringify(json));
     });
@@ -62,8 +64,9 @@ app.on('@create-todo', (json, ws) => {
 
 app.on('@update-todo', (json, ws) => {
   using(db => {
-    const sql = 'update todo set title=?, done=? where id=?';
-    db.run(sql, json.state.title, json.state.done, json.state.id, function () {
+    const sql = 'update todo set title=?, done=?, ip=? where id=?';
+    db.run(sql, json.state.title, json.state.done, json.ip, json.state.id, function () {
+      json.state.ip = json.ip;
       console.log('  >', 'updated', json);
       ws.send(JSON.stringify(json));
     });

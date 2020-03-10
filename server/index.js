@@ -14,10 +14,12 @@ app.use(express.static(path.join(__dirname, '../public')));
 const server = createServer(app);
 const wss = new webSocket.Server({ server });
 
-wss.on('connection', function(ws) {
+wss.on('connection', function (ws, req) {
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   ws.on('message', function (data) {
     try {
       const json = JSON.parse(data);
+      json.ip = ip;
       console.log('==>', json);
       apprun.run(json.event, json, ws);
     } catch (e) {
