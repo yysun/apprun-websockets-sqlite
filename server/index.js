@@ -15,7 +15,8 @@ const server = createServer(app);
 const wss = new webSocket.Server({ server });
 
 wss.on('connection', function (ws, req) {
-  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  ip = ip.split(',')[0];
   ws.on('message', function (data) {
     try {
       const json = JSON.parse(data);
