@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "apprun": "^2.26.3",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "sqlite3": "^5.0.0",
     "ws": "^7.4.1"
   }
